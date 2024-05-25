@@ -23,7 +23,8 @@ public class CourseData {
 	private Set<SectionData> sections = new HashSet<>();
 	
 	//many to many relationship. multiple instructors teach multiple courses
-	private Set<InstructorData> instructors = new HashSet<>();
+	//private Set<InstructorData> instructors = new HashSet<>();
+	//private Instructor instructor;
 	
 	//constructor to create courseData object from course entity
 	public CourseData (Course course)
@@ -38,11 +39,7 @@ public class CourseData {
 		{
 			sections.add(new SectionData(section));
 		}
-		
-		for (Instructor instructor: course.getInstructors())
-		{
-			instructors.add(new InstructorData(instructor));
-		}
+
 
 	}
 	

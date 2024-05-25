@@ -3,6 +3,8 @@ package courseCatalog.Controller.Model;
 import java.util.HashSet;
 import java.util.Set;
 
+import courseCatalog.entity.Course;
+import courseCatalog.entity.Department;
 import courseCatalog.entity.Instructor;
 import courseCatalog.entity.Section;
 import lombok.Data;
@@ -17,10 +19,7 @@ public class InstructorData {
 	private String firstName;
 	private String lastName;
 	private String email;
-	private Set<SectionData> sections = new HashSet<>();
-	
-	//this is already in course
-	//private Set<CourseData> coursesTaught = new HashSet<>();
+	//private Set<DepartmentData> departments = new HashSet<>();
 	
 	//convert from instructor entity to instructor PJO
 	public InstructorData(Instructor instructor) 
@@ -28,12 +27,8 @@ public class InstructorData {
 		instructorId = instructor.getInstructorId();
 		firstName = instructor.getFirstName();
 		lastName = instructor.getLastName();
-		email = instructor.getEmail();
+		email = instructor.getEmail();	
 		
-		for (Section section: instructor.getSections())
-		{
-			sections.add(new SectionData(section));
-		}
 	}
 
 }

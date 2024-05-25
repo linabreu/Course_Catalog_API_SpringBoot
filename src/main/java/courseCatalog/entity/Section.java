@@ -13,6 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+
 @Entity
 @Data
 public class Section {
@@ -20,8 +21,6 @@ public class Section {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long sectionId;
-	//private Long courseID;
-	//private Long instructorID;
 	private String semester;
 	private String day;
 	private String time;
@@ -41,6 +40,7 @@ public class Section {
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "instructor_id", nullable = false) //use the table name snake case not the java name
 	private Instructor instructor;
+	
 	
 	
 	

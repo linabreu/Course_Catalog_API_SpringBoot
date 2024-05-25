@@ -9,16 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import courseCatalog.Controller.Model.CourseData;
+import courseCatalog.Controller.Model.DepartmentData;
 import courseCatalog.Controller.Model.InstructorData;
 import courseCatalog.Controller.Model.SectionData;
 import courseCatalog.dao.CourseDao;
+import courseCatalog.dao.DepartmentDao;
 import courseCatalog.dao.InstructorDao;
 import courseCatalog.dao.SectionDao;
 import courseCatalog.entity.Course;
+import courseCatalog.entity.Department;
 import courseCatalog.entity.Instructor;
 import courseCatalog.entity.Section;
-
-
 
 @Service
 public class CourseCatalogService {
@@ -31,42 +32,47 @@ public class CourseCatalogService {
 	
 	@Autowired
 	private SectionDao sectionDao;
+	
+	@Autowired
+	private DepartmentDao departmentDao;
 
 	
 //--------------------------- save methods for the data objects------------------
 	
-	//course is like customer in PetStore and instructor is like the petStore
-	//need to add the ID in the controller method as well for this to work
+
 	@Transactional(readOnly = false)
-	public CourseData saveCourse(CourseData courseData, Long instructorID) //either find or create a courses
+	public CourseData saveCourse(CourseData courseData) //either find or create a courses
 	{
-		Instructor instructor = findInstructorById(instructorID);
 		Long courseID = courseData.getCourseId();
-		Course course = findOrCreateCourse(courseID, instructorID);
+		Course course = findOrCreateCourse(courseID);
 		setCourseFields(course, courseData);
-		course.getInstructors().add(instructor);
-		instructor.getCoursesTaught().add(course);
 		return new CourseData(courseDao.save(course));
-		
-		/*
-		PetStore petStore = findPetStoreById(petStoreID);
-		Long customerID = customerData.getCustomerId();
-		Customer customer = findOrCreateCustomer(customerID, petStoreID );
-		copyCustomerFields(customer, customerData);
-		customer.getPetstores().add(petStore);
-		petStore.getCustomers().add(customer);
-		return new PetStoreCustomer(customerDao.save(customer));
-		 */
 	}
 	
 	@Transactional(readOnly = false)
-	public InstructorData saveInstructor(InstructorData instructorData)
+	public InstructorData saveInstructor(InstructorData instructorData, Long departmentID)
 	{
+		Department department = findDepartmentById(departmentID);
 		Long instructorID = instructorData.getInstructorId();
 		Instructor instructor = findOrCreateInstructor(instructorID);
 		setInstructorFields(instructor, instructorData);
+		department.getInstructors().add(instructor);
+		instructor.getDepartments().add(department);
 		return new InstructorData(instructorDao.save(instructor));
 	}
+	@Transactional(readOnly = false)
+	public InstructorData patchInstructor(Long instructorID, Long departmentID)
+	{
+		Department department = findDepartmentById(departmentID);
+		Instructor instructor = findOrCreateInstructor(instructorID);
+		department.getInstructors().add(instructor);
+		instructor.getDepartments().add(department);
+		return new InstructorData(instructorDao.save(instructor));
+	}
+	
+	
+	
+	
 	
 	//like pet store to employee
 	//update the controller method
@@ -76,24 +82,26 @@ public class CourseCatalogService {
 	{
 		
 		Instructor instructor = findInstructorById(instructorID);
-
+		Course course = findCourseById(courseID);
 		Long sectionID = sectionData.getSectionId();
 		Section section = findOrCreateSection(sectionID);
 		setSectionFields(section, sectionData);
+		section.setInstructor(instructor);
+		section.setCourse(course);
+		instructor.getSections().add(section);
+		course.getSections().add(section);
 		return new SectionData(sectionDao.save(section));
-		
-		/*
-		 * section to instructor is like employee to pet store
-		PetStore petStore = findPetStoreById(petStoreID);
-		Long employeeID = employeeData.getEmployeeId();
-		Employee employee = findOrCreateEmployee(employeeID, petStoreID);
-		copyEmployeeFields(employee, employeeData);
-		employee.setPetStore(petStore);
-		petStore.getEmployees().add(employee);
-		return new PetStoreEmployee(employeeDao.save(employee));
-		 */
 	}
-
+	
+	@Transactional(readOnly = false)
+	public DepartmentData saveDepartment(DepartmentData departmentData)
+	{
+		Long departmentID = departmentData.getDepartmentId();
+		Department department = findOrCreateDepartment(departmentID);
+		setDepartmentFields(department, departmentData);
+		return new DepartmentData(departmentDao.save(department));	
+	}
+	
 //------------------ set methods for entity objects ------------------
 	private void setCourseFields(Course course, CourseData courseData) 
 	{
@@ -119,10 +127,17 @@ public class CourseCatalogService {
 		section.setDay(sectionData.getDay());
 		section.setRoom(sectionData.getRoom());
 		section.setTime(sectionData.getTime());
+		//section.setInstructor(sectionData.getInstructor());
+	}
+	
+	private void setDepartmentFields(Department department, DepartmentData departmentData)
+	{
+		department.setDepartmentId(departmentData.getDepartmentId());
+		department.setDepartmentName(departmentData.getDepartmentName());
 	}
 	
 //------------------ find or create methods for C and U operations ------------------
-	private Course findOrCreateCourse(Long courseID, Long instructorID) 
+	private Course findOrCreateCourse(Long courseID) 
 	{
 		Course course;
 		
@@ -132,7 +147,7 @@ public class CourseCatalogService {
 		}
 		else//update existing course
 		{
-			course = findCourseById(courseID, instructorID);
+			course = findCourseById(courseID);
 		}
 		return course;	
 	}
@@ -166,51 +181,28 @@ public class CourseCatalogService {
 		}
 		return section;
 	}
+	
+	private Department findOrCreateDepartment(Long departmentID) 
+	{
+		Department department;
+		
+		if(Objects.isNull(departmentID))//create new course
+		{
+			department = new Department();
+		}
+		else//update existing course
+		{
+			department = findDepartmentById(departmentID);
+		}
+		return department;	
+	}
 
 	@Transactional(readOnly = true)
-	private Course findCourseById(Long courseID, Long instructorID) 
+	private Course findCourseById(Long courseID) 
 	{
-		Course course = courseDao.findById(courseID).orElseThrow(()-> new NoSuchElementException
-				("Course with ID " + courseID + " not found!"));
-		boolean found = false;
-		for (Instructor instructor: course.getInstructors())
-		{
-			if(instructor.getInstructorId() == instructorID)
-			{
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-		{
-			throw new IllegalArgumentException("Course with" + courseID + " not taught by instructor " + instructorID);
-		}
-		return course;
+		return courseDao.findById(courseID).orElseThrow(()-> new NoSuchElementException
+				("Instructor with ID " + courseID + " not found!"));
 	}
-	
-	/*
-	private Customer findCustomerById(Long customerID, Long petStoreID) 
-	{
-		Customer customer = customerDao.findById(customerID).orElseThrow(
-				()-> new NoSuchElementException("Customer with ID " + customerID + " was not found!"));
-		
-		boolean found = false;
-		for (PetStore petStore: customer.getPetstores())
-		{
-			if(petStore.getPetStoreID() == petStoreID)
-			{
-				found = true;
-				break;
-			}	
-		}
-		if(!found)
-		{
-			throw new IllegalArgumentException("Customer with" + customerID + " not in petStore with " + petStoreID);
-		}
-		return customer;
-	}
-	 */
-	
 	@Transactional(readOnly = true)
 	private Instructor findInstructorById(Long instructorID)
 	{
@@ -223,6 +215,13 @@ public class CourseCatalogService {
 	{
 		return sectionDao.findById(sectionID).orElseThrow(()-> new NoSuchElementException
 				("Section with ID " + sectionID + " not found!"));
+	}
+	
+	@Transactional(readOnly = true)
+	private Department findDepartmentById(Long departmentID) 
+	{
+		return departmentDao.findById(departmentID).orElseThrow(
+				() -> new NoSuchElementException("Petstore with ID " + departmentID + " was not found!"));
 	}
 
 //------------------ retrieve methods ------------------
@@ -269,9 +268,22 @@ public class CourseCatalogService {
 	}
 	
 	@Transactional(readOnly = true)
-	public CourseData retrieveCourseById(Long courseID, Long instructorID)
+	public List<DepartmentData> retrieveAllDepartments()
 	{
-		Course course = findCourseById(courseID, instructorID);
+		List<Department> departments = departmentDao.findAll();
+		List<DepartmentData> departmentData = new LinkedList<>();
+		
+		for (Department department: departments)
+		{
+			departmentData.add(new DepartmentData(department));
+		}
+		return departmentData;
+	}
+	
+	@Transactional(readOnly = true)
+	public CourseData retrieveCourseById(Long courseID)
+	{
+		Course course = findCourseById(courseID);
 		return new CourseData(course); //convert course entity to data to return it
 	}
 	
@@ -289,12 +301,19 @@ public class CourseCatalogService {
 		return new SectionData(section);
 	}
 	
+	@Transactional(readOnly = true)
+	public DepartmentData retrieveDepartmentById(Long departmentID, Long instructorID)
+	{
+		Department department = findDepartmentById(departmentID);
+		return new DepartmentData(department); //convert course entity to data to return it
+	}
+	
 //------------------ delete methods ------------------
 	
 	@Transactional(readOnly = false)
-	public void deleteCourseById(Long courseID, Long instructorID) 
+	public void deleteCourseById(Long courseID) 
 	{
-		Course course = findCourseById(courseID, instructorID);
+		Course course = findCourseById(courseID);
 		courseDao.deleteById(courseID);
 	}
 
@@ -302,7 +321,7 @@ public class CourseCatalogService {
 	public void deleteInstructorById(Long instructorID) 
 	{
 		Instructor instructor = findInstructorById(instructorID);
-		instructorDao.deleteById(instructorID);
+		instructorDao.delete(instructor);
 	}
 	
 	@Transactional(readOnly = false)
@@ -310,6 +329,26 @@ public class CourseCatalogService {
 	{
 		Section section = findSectionById(sectionID);
 		sectionDao.deleteById(sectionID);
+	}
+	
+	@Transactional(readOnly = false)
+	public void deleteDepartmentById(Long departmentID) 
+	{
+		Department department = findDepartmentById(departmentID);
+		departmentDao.deleteById(departmentID);
+	}
+
+	public List<Instructor> retrieveAllInstructorsForInit() 
+	{
+		List<Instructor> instructors = instructorDao.findAll();
+		
+		for (Instructor instructor : instructors)
+		{
+			//instructor.getCoursesTaught().size();
+			//instructor.getCoursesTaught();
+			instructor.getSections();
+		}
+		return instructors;
 	}
 
 

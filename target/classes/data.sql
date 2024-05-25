@@ -1,3 +1,10 @@
+insert into department (department_name)
+values ('Software Engineering'),
+		('Digital Media'),
+		('Cybersecurity'),
+		('IT Support'),
+		('Information Systems');
+
 insert into instructor (first_name, last_name, email)
 values ('John', 'Doe', 'john.doe@cactus-college.edu'),
        ('Jane', 'Smith', 'jane.smith@cactus-college.edu'),
