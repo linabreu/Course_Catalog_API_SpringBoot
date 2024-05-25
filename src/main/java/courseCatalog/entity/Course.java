@@ -42,25 +42,6 @@ public class Course {
 	private Set<Section> sections = new HashSet<>();
 	
 	
-	/*@ToString.Exclude
-	@EqualsAndHashCode.Exclude
-	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "instructor_id", nullable = false) //use the table name snake case not the java name
-	private Instructor instructor;
-	*/
-	
-	
-	/*@EqualsAndHashCode.Exclude
-	@ToString.Exclude
-	@OneToMany(mappedBy = "coursesTaught", cascade = CascadeType.PERSIST) ///courses is the java field name for the set of courses in instructor class
-	private Set<Instructor> instructor = new HashSet<>();
-	
-	/*
-	@EqualsAndHashCode.Exclude
-	@ToString.Exclude
-	@ManyToMany(mappedBy = "customers", cascade = CascadeType.PERSIST)
-	private Set<PetStore> petstores = new HashSet<>();
-	 */
 
 
 }

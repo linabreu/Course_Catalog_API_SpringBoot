@@ -1,6 +1,8 @@
 package courseCatalog.Controller.Model;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import courseCatalog.entity.Course;
@@ -19,7 +21,7 @@ public class InstructorData {
 	private String firstName;
 	private String lastName;
 	private String email;
-	//private Set<DepartmentData> departments = new HashSet<>();
+	//private List<String> departments = new ArrayList<String>();
 	
 	//convert from instructor entity to instructor PJO
 	public InstructorData(Instructor instructor) 
@@ -28,6 +30,11 @@ public class InstructorData {
 		firstName = instructor.getFirstName();
 		lastName = instructor.getLastName();
 		email = instructor.getEmail();	
+		
+	/*	for (Department department: instructor.getDepartments())
+		{
+			departments.add(new DepartmentData(department).getDepartmentName());
+		}*/
 		
 	}
 
